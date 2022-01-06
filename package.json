@@ -4,7 +4,7 @@
     "email": "talha@fallentech.com",
     "url": "http://fallentech.com"
   },
-  "name": "mongoose-url-slugs",
+  "name": "@govirtuo/mongoose-url-slugs",
   "description": "Create URL compatiable slugs on mongoose models, ensuring uniqueness.",
   "version": "1.0.3",
   "keywords": [
