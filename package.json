@@ -17,8 +17,8 @@
   ],
   "homepage": "http://talha-asad.github.io/mongoose-url-slugs/",
   "repository": {
-    "type": "git",
-    "url": "git://github.com/talha-asad/mongoose-url-slugs.git"
+    "type": "http",
+    "url": "http://github.com/govirtuo/mongoose-url-slugs.git"
   },
   "main": "index.js",
   "files": [
