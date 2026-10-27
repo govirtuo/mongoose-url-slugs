@@ -29,7 +29,16 @@
     "format:check": "npm run format -- --check",
     "lint": "oxlint",
     "lint:fix": "npm run format && oxlint --fix",
+    "major-release": "npm version major && npm publish",
+    "major-release-candidate": "npm version premajor --preid rc && npm publish --tag beta",
+    "minor-release": "npm version minor && npm publish",
+    "minor-release-candidate": "npm version preminor --preid rc && npm publish --tag beta",
+    "next-release-candidate": "npm version prerelease --preid rc && npm publish --tag beta",
+    "patch-release": "npm version patch && npm publish",
+    "patch-release-candidate": "npm version prepatch --preid rc && npm publish --tag beta",
+    "postpublish": "git push --follow-tags",
     "prepack": "npm run lint && npm run build",
+    "preversion": "npm run lint && npm run test && npm run build",
     "test": "npm run build && node --test --enable-source-maps --test-reporter spec --test-force-exit 'dist/test/**/*.js'"
   },
   "peerDependencies": {
