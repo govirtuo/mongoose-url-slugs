@@ -24,13 +24,13 @@
   ],
   "scripts": {
     "build": "npm run clean && tsc --pretty",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist dist-test",
     "format": "oxfmt 'src/**/*.ts' 'test/**/*.ts'",
     "format:check": "npm run format -- --check",
     "lint": "oxlint",
     "lint:fix": "npm run format && oxlint --fix",
     "prepack": "npm run lint && npm run build",
-    "test": "npm run build && mocha --enable-source-maps 'test/**/*.js'"
+    "test": "npm run build && tsc -p tsconfig.test.json --pretty && mocha --enable-source-maps 'dist-test/**/*.js'"
   },
   "peerDependencies": {
     "mongoose": "^9.0.0"

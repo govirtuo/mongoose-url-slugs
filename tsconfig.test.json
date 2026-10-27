@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": false,
+    "outDir": "./dist-test",
+    "rootDir": "./test",
+    "sourceMap": true,
+    "types": ["node", "mocha"]
+  },
+  "include": ["test/**/*.ts"],
+  "exclude": ["node_modules", "dist", "dist-test"]
+}
