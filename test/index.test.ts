@@ -1,6 +1,7 @@
-import { expect } from 'chai'
+import assert from 'node:assert/strict'
+import { after, before, describe, it } from 'node:test'
 import mongoose, { type HydratedDocument, type Model } from 'mongoose'
-import urlSlugs from '../dist/src/index.js'
+import urlSlugs from '../src/index.js'
 
 const maxLength = 20
 
@@ -22,16 +23,12 @@ const TestSparseObj: Model<SlugAttrs> = mongoose.model<SlugAttrs>(
   TestObjSparseSchema,
 )
 
-function requireDoc(doc: HydratedDocument<SlugAttrs> | null): HydratedDocument<SlugAttrs> {
-  expect(doc).to.exist
-  if (!doc) {
-    throw new Error('Expected a document')
-  }
-  return doc
+function assertEmptySlug(slug: string | null | undefined): void {
+  assert.ok(slug === undefined || slug === null || slug === '')
 }
 
-describe('mongoose-url-slugs', function () {
-  before(async function () {
+describe('mongoose-url-slugs', () => {
+  before(async () => {
     const uri = process.env.MONGODB_URI ?? 'mongodb://127.0.0.1/mongoose-url-slugs-test'
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(uri)
@@ -40,82 +37,86 @@ describe('mongoose-url-slugs', function () {
     await TestSparseObj.deleteMany({})
   })
 
-  after(async function () {
+  after(async () => {
     await mongoose.disconnect()
   })
 
-  describe('maxLength', function () {
-    it('ensures slug length is less than maxLength', async function () {
+  describe('maxLength', () => {
+    it('ensures slug length is less than maxLength', async () => {
       const obj = await TestObj.create({
         name: 'super duper long content that cannot possibly fit into a url in any meaningful manner',
       })
-      expect(obj.slug).to.have.lengthOf(maxLength)
+      assert.equal(obj.slug?.length, maxLength)
     })
 
-    it('sequential slugs work with maxLength', async function () {
+    it('sequential slugs work with maxLength', async () => {
       const obj = await TestObj.create({
         name: 'super duper long content that cannot possibly fit into a url',
       })
-      expect(obj.slug).to.have.lengthOf(maxLength)
+      assert.equal(obj.slug?.length, maxLength)
       const obj2 = await TestObj.create({
         name: 'super duper long content that cannot possibly fit into a url',
       })
-      expect(obj2.slug).to.have.lengthOf(maxLength)
+      assert.equal(obj2.slug?.length, maxLength)
     })
   })
 
-  describe('slug numbering', function () {
-    it('does not add unnecessary numbers', async function () {
+  describe('slug numbering', () => {
+    it('does not add unnecessary numbers', async () => {
       const obj = await TestObj.create({ name: 'Foo Bar' })
-      expect(obj.slug).to.equal('foo-bar')
+      assert.equal(obj.slug, 'foo-bar')
       const obj2 = await TestObj.create({ name: 'Foo' })
-      expect(obj2.slug).to.equal('foo')
-      expect(obj._id.equals(obj2._id)).to.equal(false)
+      assert.equal(obj2.slug, 'foo')
+      assert.equal(obj._id.equals(obj2._id), false)
     })
   })
 
-  describe('slug', function () {
-    it('does not use undefined when slug field was not selected and document was saved', async function () {
+  describe('slug', () => {
+    it('does not use undefined when slug field was not selected and document was saved', async () => {
       const obj = await TestObj.create({ name: 'selected', extra: 'test' })
-      expect(obj.slug).to.equal('selected')
-      const obj2 = requireDoc(await TestObj.findOne({ name: 'selected' }).select('extra'))
+      assert.equal(obj.slug, 'selected')
+      const obj2: HydratedDocument<SlugAttrs> | null = await TestObj.findOne({
+        name: 'selected',
+      }).select('extra')
+      assert.ok(obj2)
       obj2.extra = 'test2'
       await obj2.save()
-      const obj4 = requireDoc(await TestObj.findOne({ name: 'selected' }))
-      expect(obj4.extra).to.equal('test2')
-      expect(obj4.slug).to.equal('selected')
+      const obj4 = await TestObj.findOne({ name: 'selected' })
+      assert.ok(obj4)
+      assert.equal(obj4.extra, 'test2')
+      assert.equal(obj4.slug, 'selected')
     })
 
-    it('uses undefined when slug field does not exist but was selected', async function () {
+    it('uses undefined when slug field does not exist but was selected', async () => {
       const obj = await TestObj.create({ extra: 'test' })
-      expect(obj.slug).to.equal('undefined')
+      assert.equal(obj.slug, 'undefined')
       const obj2 = await TestObj.create({ extra: 'test2' })
-      expect(obj2.slug).to.equal('undefined-2')
-      expect(obj._id.equals(obj2._id)).to.equal(false)
+      assert.equal(obj2.slug, 'undefined-2')
+      assert.equal(obj._id.equals(obj2._id), false)
     })
 
-    it('sets slug to undefined when it is an empty string and was selected', async function () {
+    it('sets slug to undefined when it is an empty string and was selected', async () => {
       const obj = await TestObj.create({ name: '' })
-      expect(obj.slug).to.equal('undefined-3')
+      assert.equal(obj.slug, 'undefined-3')
     })
   })
 
-  describe('index_sparse', function () {
-    it('sets slug to null when it is an empty string', async function () {
+  describe('index_sparse', () => {
+    it('sets slug to null when it is an empty string', async () => {
       const obj = await TestSparseObj.create({ name: '' })
-      expect(obj.slug).to.be.oneOf([undefined, null, ''])
+      assertEmptySlug(obj.slug)
       const obj2 = await TestSparseObj.create({ name: '' })
-      expect(obj2.slug).to.be.oneOf([undefined, null, ''])
-      expect(obj._id.equals(obj2._id)).to.equal(false)
+      assertEmptySlug(obj2.slug)
+      assert.equal(obj._id.equals(obj2._id), false)
     })
   })
 
-  it('works', async function () {
+  it('works', async () => {
     const obj = await TestObj.create({ name: 'cool stuff' })
-    expect(obj.slug).to.equal('cool-stuff')
+    assert.equal(obj.slug, 'cool-stuff')
     const obj2 = await TestObj.create({ name: 'cool stuff' })
-    expect(obj2.slug).to.equal('cool-stuff-2')
+    assert.equal(obj2.slug, 'cool-stuff-2')
     const obj3 = await TestObj.create({ name: 'cool stuff' })
-    expect(obj3.slug).to.equal('cool-stuff-3')
+    assert.equal(obj3.slug, 'cool-stuff-3')
   })
 })
